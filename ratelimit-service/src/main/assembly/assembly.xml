@@ -1,0 +1,22 @@
+<assembly>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <baseDirectory>/</baseDirectory>
+    <id>ratelimit</id>
+    <formats>
+        <format>dir</format>
+    </formats>
+    <fileSets>
+<!--        <fileSet>-->
+<!--            <directory>./src/main/resources</directory>-->
+<!--            <outputDirectory>resources</outputDirectory>-->
+<!--        </fileSet>-->
+        <fileSet>
+            <!-- TODO: (VirajSalaka) Another option is to use the dependencySet option -->
+            <directory>target</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>

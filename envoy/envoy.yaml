@@ -1,0 +1,103 @@
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9000
+static_resources:
+  listeners:
+  - address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 9095
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_ws_to_ws
+          upgrade_configs:
+          - upgrade_type: websocket
+            filters:
+            - name: envoy.filters.http.ext_authz
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                grpc_service:
+                  envoy_grpc:
+                    cluster_name: ext-authz
+                  timeout: 10s
+                transport_api_version: V3
+            - name: envoy.filters.http.mgw_websocket
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.mgw_websocket.v3.RateLimit
+                domain: rl
+                ratelimit_type: upstream
+                failure_mode_deny: false
+                timeout: 10s
+                rate_limit_service:
+                  grpc_service:
+                    envoy_grpc:
+                      cluster_name: ratelimit
+                    timeout: 10s 
+            - name: envoy.filters.http.router
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: app
+              domains:
+              - "*"
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: service_ws
+                  auto_host_rewrite: true
+          http_filters:
+          - name: envoy.filters.http.router
+
+  clusters:
+  - name: service_ws
+    connect_timeout: 10s
+    type: LOGICAL_DNS
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: service_ws
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: echo.websocket.org
+                port_value: 80
+                
+  - name: ratelimit
+    connect_timeout: 10s
+    type: LOGICAL_DNS
+    lb_policy: round_robin
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: ratelimit
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: ratelimit
+                port_value: 50052
+                
+  - name: ext-authz
+    type: LOGICAL_DNS
+    connect_timeout: 10s
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: ext-authz
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: external-auth
+                port_value: 50051
+                
+   
+    

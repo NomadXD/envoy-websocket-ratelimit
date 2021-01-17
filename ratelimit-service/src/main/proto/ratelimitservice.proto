@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package envoy.extensions.filters.http.mgw_websocket.v3;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+
+option java_package = "org.wso2.micro.gateway.enforcer.ratelimit.websocket.api";
+option java_outer_classname = "MgwWebsocketRateLimitService";
+option java_multiple_files = true;
+
+message Metadata {
+
+  // Key is the reverse DNS filter name, e.g. com.acme.widget. The envoy.*
+  // namespace is reserved for Envoy's built-in filters.
+  map<string, google.protobuf.Struct> filter_metadata = 1;
+}
+
+message RateLimitRequest{
+  string domain = 1;
+
+  //repeated RateLimitDescriptor descriptors = 2;
+  //google.protobuf.Struct descriptors = 2;
+
+  Metadata metadata_context = 2;
+
+}
+
+message RateLimitResponse{
+
+  enum Code {
+    // The response code is not known.
+    UNKNOWN = 0;
+    // The response code to notify that the number of requests are under limit.
+    OK = 1;
+    // The response code to notify that the number of requests are over limit.
+    OVER_LIMIT = 2;
+  }
+
+  Code overall_code = 1;
+
+}
+
+message RateLimitDescriptor{
+  // Descriptor key.
+  string key = 1;
+
+  // Descriptor value.
+  string value = 2;
+}
+
+service RateLimitService{
+  rpc ShouldRateLimit(RateLimitRequest) returns (RateLimitResponse){
+
+  }
+
+  rpc ShouldRateLimitStream(stream RateLimitRequest) returns (stream RateLimitResponse){
+
+  }
+}
