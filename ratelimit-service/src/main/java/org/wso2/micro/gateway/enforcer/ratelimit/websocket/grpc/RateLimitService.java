@@ -19,6 +19,7 @@ public class RateLimitService extends RateLimitServiceGrpc.RateLimitServiceImplB
             @Override
             public void onNext(RateLimitRequest rateLimitRequest) {
                 LOGGER.info("StreamObserver onNext()");
+                LOGGER.info("metadata:"+ rateLimitRequest.toString());
                 RateLimitResponse response = RateLimitResponse.newBuilder().setOverallCode(RateLimitResponse.Code.OK).build();
                 responseObserver.onNext(response);
             }

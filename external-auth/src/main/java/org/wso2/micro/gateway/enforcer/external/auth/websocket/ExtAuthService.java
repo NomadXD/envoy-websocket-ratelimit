@@ -11,6 +11,9 @@ import io.grpc.stub.StreamObserver;
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.google.protobuf.Struct.Builder;
+import com.google.protobuf.Struct;
+import com.google.protobuf.util.JsonFormat;
 
 public class ExtAuthService extends AuthorizationGrpc.AuthorizationImplBase {
 
@@ -50,8 +53,20 @@ public class ExtAuthService extends AuthorizationGrpc.AuthorizationImplBase {
         }else {
             LOGGER.debug("responseObject status code: 200");
             OkHttpResponse.Builder okResponseBuilder = OkHttpResponse.newBuilder();
-            return CheckResponse.newBuilder().setStatus(Status.newBuilder().setCode(Code.OK_VALUE).build())
-                    .setOkResponse(okResponseBuilder.build()).build();
+            Builder structBuilder = Struct.newBuilder();
+            try{
+                JsonFormat.parser().merge(responseObject.getKeys().toString(), structBuilder);
+                return CheckResponse.newBuilder().setStatus(Status.newBuilder().setCode(Code.OK_VALUE).build())
+                        .setDynamicMetadata(structBuilder)
+                        .setOkResponse(okResponseBuilder.build()).build();
+            }catch (Exception e){
+                LOGGER.error("Error: ", new Error(e));
+                return CheckResponse.newBuilder().setStatus(Status.newBuilder().setCode(Code.OK_VALUE).build())
+                        .setDynamicMetadata(structBuilder)
+                        .setOkResponse(okResponseBuilder.build()).build();
+            }
+
+
         }
 
     }

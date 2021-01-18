@@ -3,6 +3,7 @@ package org.wso2.micro.gateway.enforcer.external.auth.websocket;
 import io.jsonwebtoken.Claims;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 
 import java.util.Map;
@@ -18,6 +19,11 @@ public class RequestHandler {
         try{
             String authToken = authHeader.split(" ")[1];
             Claims claims = TokenService.decodeJWT(authToken);
+            JSONObject keys = new JSONObject();
+            keys.put("apiKey", claims.get("apiKey"));
+            keys.put("applicationKey", claims.get("applicationKey"));
+            keys.put("subscriptionKey", claims.get("subscriptionKey"));
+            responseObject.setKeys(keys);
             LOGGER.info("Claims: "+ claims.toString());
             responseObject.setStatusCode(200);
             LOGGER.info("Authentication successful");

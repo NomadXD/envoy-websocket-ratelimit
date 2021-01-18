@@ -10,6 +10,7 @@ import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.json.simple.JSONObject;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -25,8 +26,15 @@ public class TokenService {
 
         byte[] apiKeySecretBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
-
+        JSONObject keys = new JSONObject();
+        UUID applicationKey = Generators.randomBasedGenerator().generate();
+        UUID subscriptionKey = Generators.randomBasedGenerator().generate();
+        UUID apiKey = Generators.randomBasedGenerator().generate();
         UUID id = Generators.randomBasedGenerator().generate();
+        keys.put("applicationKey", applicationKey);
+        keys.put("subscriptionKey", subscriptionKey);
+        keys.put("apiKey", apiKey);
+
         JwtBuilder builder = Jwts.builder().setId(id.toString())
                                             .setIssuedAt(now)
                                             .setSubject("websocketDemo")
@@ -36,6 +44,7 @@ public class TokenService {
         Date exp = new Date(expMillis);
         builder.setExpiration(exp);
 
+        builder.setClaims(keys);
         return builder.compact();
     }
 
