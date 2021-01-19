@@ -1,12 +1,23 @@
 package org.wso2.micro.gateway.enforcer.ratelimit.websocket.grpc;
 
+import com.google.protobuf.Struct;
 import io.grpc.stub.StreamObserver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.wso2.micro.gateway.enforcer.ratelimit.websocket.api.*;
-//
+
+import com.google.protobuf.util.JsonFormat;
+import java.util.concurrent.ConcurrentHashMap;
+
+
 public class RateLimitService extends RateLimitServiceGrpc.RateLimitServiceImplBase{
     private static final Logger LOGGER = LogManager.getLogger(RateLimitService.class.getName());
+    private static ConcurrentHashMap<String, StreamObserver<RateLimitResponse>> responseObserverArr = new ConcurrentHashMap<>();
+
+    public RateLimitService() {
+        LOGGER.info(">>>>>>>>>>>>>>>>> constructor invoked");
+    }
+
     @Override
     public void shouldRateLimit(RateLimitRequest request, StreamObserver<RateLimitResponse> responseObserver) {
         super.shouldRateLimit(request, responseObserver);
@@ -18,8 +29,16 @@ public class RateLimitService extends RateLimitServiceGrpc.RateLimitServiceImplB
         return new StreamObserver<RateLimitRequest>() {
             @Override
             public void onNext(RateLimitRequest rateLimitRequest) {
-                LOGGER.info("StreamObserver onNext()");
-                LOGGER.info("metadata:"+ rateLimitRequest.toString());
+                LOGGER.info("metadata context:"+ rateLimitRequest.getMetadataContext().getFilterMetadataMap().get("envoy.filters.http.ext_authz"));
+                Struct extAuthMetadata = rateLimitRequest.getMetadataContext().getFilterMetadataMap().get("envoy.filters.http.ext_authz");
+                JsonFormat.Printer printer = JsonFormat.printer().includingDefaultValueFields();
+                try{
+                    String jsonObject = printer.print(extAuthMetadata);
+                    LOGGER.info("ext auth :"+ jsonObject);
+                }catch (Exception e){
+                    LOGGER.error("Error:", new Error(e));
+                }
+
                 RateLimitResponse response = RateLimitResponse.newBuilder().setOverallCode(RateLimitResponse.Code.OK).build();
                 responseObserver.onNext(response);
             }
@@ -37,3 +56,5 @@ public class RateLimitService extends RateLimitServiceGrpc.RateLimitServiceImplB
         };
     }
 }
+
+
