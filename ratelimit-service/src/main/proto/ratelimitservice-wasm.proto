@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package envoy.extensions.filters.http.mgw_websocket_wasm.v3;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+
+option java_package = "org.wso2.micro.gateway.enforcer.ratelimit.websocket.wasm";
+option java_outer_classname = "MgwWebsocketWASM";
+option java_multiple_files = true;
+
+service EnforcerWebSocketService {
+  rpc PublishFrameData(stream WebSocketFrameRequest) returns (stream WebSocketFrameResponse) {}    
+}
+
+message WebSocketFrameRequest {
+  string name = 1;
+}
+
+message WebSocketFrameResponse {
+  string message = 1;
+}
+
+// this proto represents configuration for the example filter
+message Config {
+  string clustername = 1;
+}

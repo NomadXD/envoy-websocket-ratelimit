@@ -1,10 +1,7 @@
-FROM ubuntu:20.04
+FROM envoyproxy/envoy:v1.17.1
 
-RUN apt-get update
-
-COPY ./envoy/envoy /usr/local/bin/envoy
-
-COPY ./envoy/envoy.yaml /etc/envoy/envoy.yaml
+COPY ./envoy_resources/envoy.yaml /etc/envoy/envoy.yaml
+COPY ./envoy_resources/mgw-websocket.wasm /etc/envoy/mgw-websocket.wasm
 
 CMD /usr/local/bin/envoy -c /etc/envoy/envoy.yaml
 

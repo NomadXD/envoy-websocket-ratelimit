@@ -19,26 +19,35 @@ static_resources:
           upgrade_configs:
           - upgrade_type: websocket
             filters:
-            - name: envoy.filters.http.ext_authz
+#            - name: envoy.filters.http.ext_authz
+#              typed_config:
+#                "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+#                grpc_service:
+#                  envoy_grpc:
+#                    cluster_name: ext-authz
+#                  timeout: 10s
+#                transport_api_version: V3
+            - name: envoy.filters.http.wasm
               typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                grpc_service:
-                  envoy_grpc:
-                    cluster_name: ext-authz
-                  timeout: 10s
-                transport_api_version: V3
-            - name: envoy.filters.http.mgw_websocket
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.http.mgw_websocket.v3.RateLimit
-                domain: rl
-                ratelimit_type: upstream
-                failure_mode_deny: false
-                timeout: 10s
-                rate_limit_service:
-                  grpc_service:
-                    envoy_grpc:
-                      cluster_name: ratelimit
-                    timeout: 10s 
+                "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+                type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+                value:
+                  config:
+                    name: "my_plugin"
+                    root_id: "my_root_id"
+                    configuration:
+                      "@type": "type.googleapis.com/google.protobuf.StringValue"
+                      value: |
+                        {
+                          "clustername": "ratelimit",
+                        }
+                    vm_config:
+                      runtime: "envoy.wasm.runtime.v8"
+                      vm_id: "my_vm_id"
+                      code:
+                        local:
+                          filename: "/etc/envoy/mgw-websocket.wasm"
+                      configuration: { }
             - name: envoy.filters.http.router
           route_config:
             name: local_route

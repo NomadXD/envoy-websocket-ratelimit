@@ -32,7 +32,7 @@ public class App
         final Executor executor = new RateLimitThreadPoolExecutor(400, 500, 30, TimeUnit.SECONDS, blockingQueue);
         Server server = NettyServerBuilder.forPort(GRPC_PORT).maxConcurrentCallsPerConnection(50)
                 .keepAliveTime(60, TimeUnit.SECONDS).maxInboundMessageSize(1000000000).bossEventLoopGroup(bossGroup)
-                .workerEventLoopGroup(workerGroup).addService(new RateLimitService())
+                .workerEventLoopGroup(workerGroup).addService(new RateLimitService()).addService(new EnforcerWebSocketService())
                 .channelType(NioServerSocketChannel.class).executor(executor).build();
         server.start();
         LOGGER.info("Ratelimit gRPC server started on port :"+GRPC_PORT);

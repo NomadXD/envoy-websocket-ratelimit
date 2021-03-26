@@ -14,7 +14,7 @@ services:
   envoyproxy-websocket:
     build:
       context: .
-      dockerfile: ./envoy/Dockerfile
+      dockerfile: ./envoy_resources/Dockerfile
     ports:
     - "9095:9095"
     - "9000:9000"
